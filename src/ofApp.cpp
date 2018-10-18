@@ -15,8 +15,7 @@ void ofApp::setup() {
 	//sequence.loadSequence("frame", "png", 1, 11, 2);
 	//sequence.preloadAllFrames();	//this way there is no stutter when loading frames
 
-	system(adbPortForwardCmd.c_str());
-	connected = mobileController.setup(mobileServerIp, mobileServerPort);
+	connectToMobile();
 
 	//ofSetVerticalSync(true);
 	//ofSetWindowPosition(-1080, 0);
@@ -142,16 +141,8 @@ void ofApp::update() {
 	}
 	else {
 		ofLogError("NO CONNECTION!");
-		mobileController.close();
-		system(adbPortForwardCmd.c_str());
-		try {
-			connected = mobileController.setup(mobileServerIp, mobileServerPort);
-		}
-		catch (exception ex) {
-
-		}
-	}
-
+		connectToMobileIfTimeoutInUpdate();
+	}	
 }
 
 //--------------------------------------------------------------
@@ -238,4 +229,18 @@ void ofApp::keyPressed(int key) {
 			speed = 0.004;
 			break;
 	}
+}
+
+
+void ofApp::connectToMobile() {
+	system(adbPortForwardCmd.c_str());
+	connected = mobileController.setup(mobileServerIp, mobileServerPort, false);
+}
+
+void ofApp::connectToMobileIfTimeoutInUpdate() {
+	deltaTime = ofGetElapsedTimeMillis() - connectTime;
+	if (deltaTime > reconnectTimeMillis) {
+		connectToMobile();
+		connectTime = ofGetElapsedTimeMillis();
+	}	
 }

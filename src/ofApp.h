@@ -31,8 +31,7 @@
 
 class ofApp : public ofBaseApp
 {
-
-public:
+private:
 	void setup();
 	void update();
 	void draw();
@@ -50,7 +49,8 @@ public:
 	const string mobileServerIp = "127.0.0.1";
 	const int mobileServerPort = 12580;
 	const string imgExtenstion = "png";
-	const bool isThreadedLoadImage = true;	
+	const bool isThreadedLoadImage = true;
+	const int reconnectTimeMillis = 60000;
 
 	/* end of settings */
 	
@@ -75,6 +75,12 @@ public:
     float acc[11];
     const float accFactor = 0.006;
     bool flagDefault = false;
-    int numOfFramesToStopAfterDrag = 10;    
+    int numOfFramesToStopAfterDrag = 10;
+
+	int connectTime = 0;
+	int deltaTime = 0;
+
+	void connectToMobile();
+	void connectToMobileIfTimeoutInUpdate();	
 };
 
