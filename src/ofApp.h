@@ -9,11 +9,25 @@
 *  Copyright (c) 2010-2015
 */
 
-#pragma onc
+#pragma once
 
 #include "ofMain.h"
 #include "ofxImageSequence.h"
 #include "ofxNetwork.h"
+
+#define DEBUG
+//#define RELEASE
+
+#ifdef DEBUG
+#define DISPLAY_WIDTH ofGetWidth()
+#define DISPLAY_HEIGHT ofGetHeight()
+#endif
+
+#ifdef RELEASE
+#define DISPLAY_WIDTH ofGetWidth()
+#define DISPLAY_HEIGHT ofGetHeight()
+#endif
+
 
 class ofApp : public ofBaseApp
 {
@@ -24,6 +38,21 @@ public:
 	void draw();
 
 	void keyPressed(int key);
+
+	
+	/* settings */
+	
+	const int frameRate = 24;
+	const bool isToggleFullScreen = false;
+	const bool isLogToConsole = false;
+	//const string adbPortForwardCmd = "/usr/local/Cellar/android-platform-tools/25.0.3/bin/adb forward tcp:12580 tcp:10086";
+	const string adbPortForwardCmd = "adb forward tcp:12580 tcp:10086";
+	const string mobileServerIp = "127.0.0.1";
+	const int mobileServerPort = 12580;
+	const string imgExtenstion = "png";
+	const bool isThreadedLoadImage = true;	
+
+	/* end of settings */
 	
 
 	ofxTCPClient mobileController;
@@ -34,18 +63,18 @@ public:
 	ofxImageSequence sequenceA;
 	ofxImageSequence sequenceB;
 	ofImage background;
-	bool playing;
+	bool playing = true;  //controls if playing automatically, or controlled by the mouse
     int dSmooth;
-	float speed = 1.0;
+	float speed;
 	float percent;
 	bool seqA = false;
-    float dragSpeed;
-    int couDefault;
-    float speedDefault;
+    const float dragSpeed = 2000;
+    int couDefault = 0;
+    //const float speedDefault = -0.000223;  // 1 / number of images in one image sequence folder
+	const float speedDefault = -0.1;
     float acc[11];
-    float accFactor;
-    bool flagDefault;
-    int numOfFramesToStopAfterDrag;
-    string adbPortForwardCmd;
+    const float accFactor = 0.006;
+    bool flagDefault = false;
+    int numOfFramesToStopAfterDrag = 10;    
 };
 
