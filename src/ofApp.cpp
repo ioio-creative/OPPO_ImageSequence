@@ -1,6 +1,5 @@
-
-
 #include "ofApp.h"
+
 
 //--------------------------------------------------------------
 void ofApp::setup() {
@@ -30,10 +29,11 @@ void ofApp::setup() {
 	sequenceB.loadSequence("frameN");
 
 	ofSetFrameRate(frameRate);
-	speed = speedDefault;	
+	speed = speedDefault;
 
-	for (int i = 0; i < 11; i++) {
-		acc[i] = (i / 11 - 0.5) * accFactor;
+	int accSize = size(acc);
+	for (int i = 0; i < accSize; i++) {
+		acc[i] = (i / accSize - 0.5) * accFactor;
 	}
 
 	if (isToggleFullScreen) {
