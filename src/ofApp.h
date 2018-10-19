@@ -17,6 +17,7 @@
 
 #define DEBUG
 //#define RELEASE
+#define IS_RECONNECT_TO_MOBILE 0
 
 #ifdef DEBUG
 #define DISPLAY_WIDTH ofGetWidth()
@@ -49,8 +50,9 @@ private:
 	const string mobileServerIp = "127.0.0.1";
 	const int mobileServerPort = 12580;
 	const string imgExtenstion = "png";
-	const bool isThreadedLoadImage = true;
+	const bool isThreadedLoadImage = false;
 	const int reconnectTimeMillis = 60000;
+	const bool isClearPixelsAfterLoadingTexture = true;
 
 	/* end of settings */
 	
@@ -70,8 +72,8 @@ private:
 	bool seqA = false;
     const float dragSpeed = 2000;
     int couDefault = 0;
-    //const float speedDefault = -0.000223;  // 1 / number of images in one image sequence folder
-	const float speedDefault = -0.1;
+    const float speedDefault = -0.000223;  // 1 / number of images in one image sequence folder
+	//const float speedDefault = -0.1;
     float acc[11];
     const float accFactor = 0.006;
     bool flagDefault = false;

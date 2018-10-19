@@ -19,13 +19,22 @@ void ofApp::setup() {
 
 	//ofSetVerticalSync(true);
 	//ofSetWindowPosition(-1080, 0);
+
+	sequenceA.setIsClearPixelsAfterLoadingTexture(isClearPixelsAfterLoadingTexture);
+	sequenceB.setIsClearPixelsAfterLoadingTexture(isClearPixelsAfterLoadingTexture);
+
+#if defined(TARGET_WIN32)
 	sequenceA.enableThreadedLoad(isThreadedLoadImage);
 	sequenceA.setExtension(imgExtenstion);
-	sequenceA.loadSequence("frameM");
+	sequenceA.loadSequence("frameO");
 
 	sequenceB.enableThreadedLoad(isThreadedLoadImage);
 	sequenceB.setExtension(imgExtenstion);
-	sequenceB.loadSequence("frameN");
+	sequenceB.loadSequence("frameP");
+#elif defined (TARGET_OSX)
+	sequenceA.loadSequence("frameO/poriffshop_video_smoke_", imgExtenstion, 0, 1499, 5);
+	sequenceB.loadSequence("frameP/poriffshop_video_smoke_", imgExtenstion, 1500, 2999, 5);
+#endif
 
 	ofSetFrameRate(frameRate);
 	speed = speedDefault;
@@ -141,7 +150,9 @@ void ofApp::update() {
 	}
 	else {
 		ofLogError("NO CONNECTION!");
+#if IS_RECONNECT_TO_MOBILE
 		connectToMobileIfTimeoutInUpdate();
+#endif
 	}	
 }
 
@@ -187,7 +198,7 @@ void ofApp::draw() {
 				sequenceB.getTextureForPercent(percent).draw(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 			}
 
-			ofLogNotice("percent: " + ofToString(percent));
+			//ofLogNotice("percent: " + ofToString(percent));
 		}
 		else {
 			//get the sequence frame that maps to the mouseX position
