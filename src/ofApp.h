@@ -14,10 +14,11 @@
 #include "ofMain.h"
 #include "ofxImageSequence.h"
 #include "ofxNetwork.h"
+#include "ofxGui.h"
 
 #define DEBUG
 //#define RELEASE
-#define IS_RECONNECT_TO_MOBILE 0
+#define IS_RECONNECT_TO_MOBILE 1
 
 #ifdef DEBUG
 #define DISPLAY_WIDTH ofGetWidth()
@@ -36,31 +37,41 @@ private:
 	void setup();
 	void update();
 	void draw();
+	void exit();
 
 	void keyPressed(int key);
 
-	
+	/* ofParameters */
+	bool drawGui = false;
+	ofxPanel gui;
+	ofParameterGroup speedParameters;
+	ofParameter<float> minSpeed;
+	ofParameter<float> dragSpeedMultiplier;
+	ofParameter<float> speedMultiplier;
+
+	void guiSetup();
+
 	/* settings */
 	
-	const int frameRate = 24;
+	const int frameRate = 30;
 	const bool isToggleFullScreen = false;
 	const bool isLogToConsole = false;
 	//const string adbPortForwardCmd = "/usr/local/Cellar/android-platform-tools/25.0.3/bin/adb forward tcp:12580 tcp:10086";
 	const string adbPortForwardCmd = "adb forward tcp:12580 tcp:10086";
 	const string mobileServerIp = "127.0.0.1";
 	const int mobileServerPort = 12580;
-	const string imgExtenstion = "png";
+	const string imgExtenstion = "jpg";
 	const bool isThreadedLoadImage = false;
-	const int reconnectTimeMillis = 60000;
+	const int reconnectTimeMillis = 5000;
 	const bool isClearPixelsAfterLoadingTexture = true;
 
 	/* end of settings */
-	
 
 	ofxTCPClient mobileController;
 	bool connected;
 	bool connectedFlag = false;
 	string ctrSpeed = "peace";
+	//move := number of frames to proceed during dragging
 	float move = 0.0;
 	ofxImageSequence sequenceA;
 	ofxImageSequence sequenceB;
@@ -70,17 +81,23 @@ private:
 	float speed;
 	float percent;
 	bool seqA = false;
-    const float dragSpeed = 2000;
+    const float DragSpeedMultiplier = 8;
+	bool forwardUpward = false;
     int couDefault = 0;
-    const float speedDefault = -0.000223;  // 1 / number of images in one image sequence folder
+	//Speed := frames per second
+    const float MinSpeed = 50;
+	const float SpeedMultiplier = 2;
 	//const float speedDefault = -0.1;
     float acc[11];
-    const float accFactor = 0.006;
-    bool flagDefault = false;
-    int numOfFramesToStopAfterDrag = 10;
+	//accFactor = maxDragForce (in frames per second^-2)
+    const float accFactor = 1200;
+    bool isDragging = false;
+    int numOfFramesToStopAfterDrag = 60;
 
 	int connectTime = 0;
 	int deltaTime = 0;
+
+	ofTexture *drawTex;
 
 	void connectToMobile();
 	void connectToMobileIfTimeoutInUpdate();	
