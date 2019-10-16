@@ -166,25 +166,7 @@ void ofApp::update() {
 				//ofLogNotice("sliding speed: " + ofToString(speed));
 			}
 		}
-	}
-	else {
-		ofLogError("NO CONNECTION!");
-#if IS_RECONNECT_TO_MOBILE
-		if (!drawGui)
-		{
-			connectToMobileIfTimeoutInUpdate();
-		}
-#endif
-	}	
-}
 
-//--------------------------------------------------------------
-void ofApp::draw() {
-	if (sequenceA.isLoading() || sequenceB.isLoading()) {
-		ofBackground(20, 0, 0);
-	}
-	else {
-		ofBackground(0);
 		if (playing) {
 			//get the frame based on the current time and draw it
 			speed *= 0.7;
@@ -205,7 +187,7 @@ void ofApp::draw() {
 			{
 				percent += deltaFrame / sequenceB.getTotalFrames();
 			}
-			
+
 			//to loop the png seq from end to beginning
 			if (percent > 1.0) {
 				percent = 0;
@@ -216,12 +198,7 @@ void ofApp::draw() {
 				seqA = !seqA;
 			}
 
-			if (seqA) {
-				drawTex = &sequenceA.getTextureForPercent(percent);				
-			}
-			else {
-				drawTex = &sequenceB.getTextureForPercent(percent);
-			}
+			
 
 			//ofLogNotice("speed: " + ofToString(speed));
 		}
@@ -229,10 +206,35 @@ void ofApp::draw() {
 			//get the sequence frame that maps to the mouseX position
 			percent = ofMap(mouseY, 0, ofGetHeight(), 0, 1.0, true);
 
-			//draw it.
+			
+		}
+	}
+	else {
+		ofLogError("NO CONNECTION!");
+#if IS_RECONNECT_TO_MOBILE
+		if (!drawGui)
+		{
+			connectToMobileIfTimeoutInUpdate();
+		}
+#endif
+	}	
+}
+
+//--------------------------------------------------------------
+void ofApp::draw() {
+	if (sequenceA.isLoading() || sequenceB.isLoading()) {
+		ofBackground(20, 0, 0);
+	}
+	else {
+		ofBackground(0);
+
+		if (seqA) {
 			drawTex = &sequenceA.getTextureForPercent(percent);
 		}
-
+		else {
+			drawTex = &sequenceB.getTextureForPercent(percent);
+		}
+		//draw it.
 		drawTex->draw(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 	}
 

@@ -53,7 +53,7 @@ private:
 
 	/* settings */
 	
-	const int frameRate = 30;
+	const int frameRate = 60;
 	const bool isToggleFullScreen = false;
 	const bool isLogToConsole = false;
 	//const string adbPortForwardCmd = "/usr/local/Cellar/android-platform-tools/25.0.3/bin/adb forward tcp:12580 tcp:10086";
