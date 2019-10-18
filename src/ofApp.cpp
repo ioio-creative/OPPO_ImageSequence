@@ -6,6 +6,16 @@ void ofApp::setup() {
 	if (isLogToConsole) {
 		ofLogToConsole();
 	}
+	ofSetVerticalSync(true);
+	ofDisableArbTex();
+
+	sequenceFbo.allocate(TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGB);
+	sequenceFbo.begin();
+	glClearColor(0,0,0,255);
+	glClear(GL_COLOR_BUFFER_BIT);
+	sequenceFbo.end();
+	sequenceFbo.resetAnchor();
+	sequenceFbo.setAnchorPercent(0.5, 0.5);
 
 	guiSetup();
 	
@@ -41,25 +51,29 @@ void ofApp::setup() {
 	ofSetFrameRate(frameRate);
 	speed = minSpeed;
 
-	int accSize = size(acc);
-	for (int i = 0; i < accSize; i++) {
-		//acc[i] = (i / accSize - 0.5) * accFactor;
-		acc[i] = ofMap(i, 0, accSize-1, -1, 1) * accFactor;
-		if (!forwardUpward)
-		{
-			acc[i] *= -1;
-		}
-		ofLogNotice(ofToString(acc[i]));
-	}
+	//int accSize = size(acc);
+	//for (int i = 0; i < accSize; i++) {
+	//	//acc[i] = (i / accSize - 0.5) * accFactor;
+	//	acc[i] = ofMap(i, 0, accSize-1, -1, 1) * accFactor;
+	//	if (!forwardUpward)
+	//	{
+	//		acc[i] *= -1;
+	//	} 
+	//	if(drawGui) ofLogNotice(ofToString(acc[i]));
+	//}
 
 	if (isToggleFullScreen) {
 		ofToggleFullscreen();
 	}
+	ofBackground(10);
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
+	float _speed = 0;
+
 	if (mobileController.isConnected()) {
+				
 		if (!connectedFlag) {
 			ofLogNotice("CONNECTED!");
 			connectedFlag = true;
@@ -86,13 +100,14 @@ void ofApp::update() {
 		}
 
 		if (ctrSpeed != "") {
+						
 			vector<string> splitedCtrSpeed = ofSplitString(ctrSpeed, " ");
-			ofLogNotice("raw:" + ctrSpeed);
+			if (drawGui) ofLogNotice("raw:" + ctrSpeed);
 
 			if (splitedCtrSpeed[0] == "d") {
 				dSmooth++;
 				//ofLogNotice("ddd:" + ofToString(dSmooth));
-				if (dSmooth > 5) {					
+				if (dSmooth > dragFrameThreshold) {					
 					//this following part for determing drag movement
 					speed = 0;
 					couDefault = 0;
@@ -117,97 +132,16 @@ void ofApp::update() {
 				dSmooth = 0;
 				ctrSpeed = splitedCtrSpeed[1];
 				
-				speed = forwardUpward ? std::stoi(ctrSpeed) : -std::stoi(ctrSpeed);
+				_speed = forwardUpward ? std::stoi(ctrSpeed) : -std::stoi(ctrSpeed);
+				_speed *= slideMultiplier;
 
 				//_ctrSpeed = ofClamp(_ctrSpeed, 0, (int)size(acc) - 1);
 				//ofLogNotice("ctrSpeed: " + ofToString(_ctrSpeed));
-				
-
-				//if (speed * acc[_ctrSpeed] < 0 )
-				//{					
-				//	//momentarily stop when changing sliding direction
-				//	speed = 0;
-				//}
-				//else
-				//{
-				//	speed = abs(speed) > abs(acc[_ctrSpeed]) ? speed : acc[_ctrSpeed];
-				//}
-
-				/*if (ctrSpeed == "10") {
-						speed = acc[10];
-				}
-				else if (ctrSpeed == "9") {
-						speed = acc[9];
-				}
-				else if (ctrSpeed == "8") {
-						speed = acc[8];
-				}
-				else if (ctrSpeed == "7") {
-						speed = acc[7];
-				}
-				else if (ctrSpeed == "6") {
-						speed = acc[6];
-				}
-				else if (ctrSpeed == "4") {
-						speed = acc[4];
-				}
-				else if (ctrSpeed == "3") {
-						speed = acc[3];
-				}
-				else if (ctrSpeed == "2") {
-						speed = acc[2];
-				}
-				else if (ctrSpeed == "1") {
-						speed = acc[1];
-				}
-				else if (ctrSpeed == "0") {
-						speed = acc[0];
-				}*/
+								
 				//ofLogNotice("sliding speed: " + ofToString(speed));
 			}
 		}
-
-		if (playing) {
-			//get the frame based on the current time and draw it
-			speed *= 0.7;
-
-			if (!isDragging)
-			{
-				if (abs(speed) < abs(minSpeed)) {
-					speed = minSpeed;
-				}
-			}
-
-			float deltaFrame = speed / (float)frameRate * speedMultiplier;
-			if (seqA)
-			{
-				percent += deltaFrame / sequenceA.getTotalFrames();
-			}
-			else
-			{
-				percent += deltaFrame / sequenceB.getTotalFrames();
-			}
-
-			//to loop the png seq from end to beginning
-			if (percent > 1.0) {
-				percent = 0;
-				seqA = !seqA;
-			}
-			else if (percent < 0.0) {
-				percent = 1;
-				seqA = !seqA;
-			}
-
-			
-
-			//ofLogNotice("speed: " + ofToString(speed));
-		}
-		else {
-			//get the sequence frame that maps to the mouseX position
-			percent = ofMap(mouseY, 0, ofGetHeight(), 0, 1.0, true);
-
-			
-		}
+		
 	}
 	else {
 		ofLogError("NO CONNECTION!");
@@ -217,7 +151,54 @@ void ofApp::update() {
 			connectToMobileIfTimeoutInUpdate();
 		}
 #endif
-	}	
+	}
+
+	if (playing) {
+		//get the frame based on the current time and draw it
+		speed *= 0.75;
+
+		if (abs(_speed) >= abs(speed))
+		{
+			speed = _speed;
+		}
+
+		if (!isDragging)
+		{
+			if (abs(speed) < abs(minSpeed)) {
+				speed = minSpeed;
+			}
+		}
+
+		float deltaFrame = speed / ofGetFrameRate();
+
+		ofxImageSequence sequenceToUse = seqA ? sequenceA : sequenceB;
+		percent += deltaFrame / sequenceToUse.getTotalFrames();
+
+
+		//to loop the png seq from end to beginning
+		if (percent > 1.0) {
+			percent = 0;
+			seqA = !seqA;
+		}
+		else if (percent < 0.0) {
+			percent = 1;
+			seqA = !seqA;
+		}
+
+
+
+		//ofLogNotice("speed: " + ofToString(speed));
+	}
+	else {
+		//get the sequence frame that maps to the mouseX position
+		percent = ofMap(mouseY, 0, ofGetHeight(), 0, 1.0, true);
+
+
+	}
+
+	std::stringstream strm;
+	strm << "fps: " << ofGetFrameRate();
+	ofSetWindowTitle(strm.str());
 }
 
 //--------------------------------------------------------------
@@ -228,28 +209,30 @@ void ofApp::draw() {
 	else {
 		ofBackground(0);
 
-		if (seqA) {
-			drawTex = &sequenceA.getTextureForPercent(percent);
-		}
-		else {
-			drawTex = &sequenceB.getTextureForPercent(percent);
-		}
+		ofxImageSequence sequenceToUse = seqA ? sequenceA : sequenceB;
+
+		drawTex = &sequenceToUse.getTextureForPercent(percent);
+		
 		//draw it.
-		drawTex->draw(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+		sequenceFbo.begin();
+		ofClear(0);
+		drawTex->draw(0, 0, sequenceFbo.getWidth(), sequenceFbo.getHeight());
+		sequenceFbo.end();
+
+		
 	}
-
-	//ofSetColor(255, 255, 255);
-	//ofDrawBitmapString(ofGetFrameRate(), 100, 100);
-	//ofDrawBitmapString(speed, 100, 150);
-	//ofDrawBitmapString(sequenceA.getCurrentFrame(), 100, 200);
-	//ofDrawBitmapString(sequenceB.getCurrentFrame(), 100, 250);
-
-	ofSetColor(255, 255, 255);
-
+	sequenceFbo.draw(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT/2, TEXTURE_WIDTH*FBO_SCALE, TEXTURE_HEIGHT * FBO_SCALE);
+	
 	if (drawGui)
 	{
+		//ofSetColor(0, 0, 255);
+		//ofDrawBitmapString(ofGetFrameRate(), 100, 100);
+		//ofDrawBitmapString(speed, 100, 150);
+		//ofDrawBitmapString(sequenceA.getCurrentFrame(), 100, 200);
+		//ofDrawBitmapString(sequenceB.getCurrentFrame(), 100, 250);
 		gui.draw();
 	}
+	ofSetColor(255, 255, 255);
 }
 
 void ofApp::exit() {
@@ -265,18 +248,19 @@ void ofApp::keyPressed(int key) {
 		case 's':
 			break;
 		case 'z':
-			speed = -100;
+			speed = -1000;
 			break;
 		case 'x':
-			speed = -180;
+			speed = -2000;
 			break;
 		case 'c':
-			speed = 180;
+			speed = 2000;
 			break;
 		case 'v':
-			speed = 100;
+			speed = 1000;
 			break;
-
+		case 'f':
+			ofToggleFullscreen();
 		case 'd':
 			drawGui = !drawGui;
 	}
@@ -301,6 +285,7 @@ void ofApp::guiSetup() {
 	speedParameters.setName("Speed Params");
 	speedParameters.add(minSpeed.set("Min. Speed", MinSpeed, -60, 60));
 	speedParameters.add(dragSpeedMultiplier.set("Drag Speed x", DragSpeedMultiplier, 0, 10));
-	speedParameters.add(speedMultiplier.set("Speed x", SpeedMultiplier, 0, 10));
+	speedParameters.add(slideMultiplier.set("Slide Speed x", SlideMultiplier, 0, 20));
+	speedParameters.add(dragFrameThreshold.set("Drag Threshold", 3, 0, 5));
 	gui.add(speedParameters);
 }

@@ -16,9 +16,13 @@
 #include "ofxNetwork.h"
 #include "ofxGui.h"
 
-#define DEBUG
-//#define RELEASE
+//#define DEBUG
+#define RELEASE
 #define IS_RECONNECT_TO_MOBILE 1
+
+#define TEXTURE_WIDTH 768
+#define TEXTURE_HEIGHT 1536
+#define SEQUENCE_FPS 60
 
 #ifdef DEBUG
 #define DISPLAY_WIDTH ofGetWidth()
@@ -26,10 +30,11 @@
 #endif
 
 #ifdef RELEASE
-#define DISPLAY_WIDTH ofGetWidth()
-#define DISPLAY_HEIGHT ofGetHeight()
+#define DISPLAY_WIDTH ofGetWindowWidth()
+#define DISPLAY_HEIGHT ofGetWindowHeight()
 #endif
 
+#define FBO_SCALE ((float)DISPLAY_HEIGHT/TEXTURE_HEIGHT)
 
 class ofApp : public ofBaseApp
 {
@@ -42,18 +47,19 @@ private:
 	void keyPressed(int key);
 
 	/* ofParameters */
-	bool drawGui = false;
+	bool drawGui = true;
 	ofxPanel gui;
 	ofParameterGroup speedParameters;
 	ofParameter<float> minSpeed;
 	ofParameter<float> dragSpeedMultiplier;
-	ofParameter<float> speedMultiplier;
+	ofParameter<float> slideMultiplier;
+	ofParameter<int> dragFrameThreshold;
 
 	void guiSetup();
 
 	/* settings */
 	
-	const int frameRate = 60;
+	const int frameRate = SEQUENCE_FPS;
 	const bool isToggleFullScreen = false;
 	const bool isLogToConsole = false;
 	//const string adbPortForwardCmd = "/usr/local/Cellar/android-platform-tools/25.0.3/bin/adb forward tcp:12580 tcp:10086";
@@ -75,29 +81,32 @@ private:
 	float move = 0.0;
 	ofxImageSequence sequenceA;
 	ofxImageSequence sequenceB;
-	ofImage background;
+	//ofImage background;
 	bool playing = true;  //controls if playing automatically, or controlled by the mouse
     int dSmooth;
 	float speed;
 	float percent;
 	bool seqA = false;
-    const float DragSpeedMultiplier = 8;
+    const float DragSpeedMultiplier = 15;
 	bool forwardUpward = false;
     int couDefault = 0;
 	//Speed := frames per second
     const float MinSpeed = 50;
-	const float SpeedMultiplier = 2;
+	const float SlideMultiplier = 0.25;
 	//const float speedDefault = -0.1;
-    float acc[11];
+    
+	//float acc[11];
 	//accFactor = maxDragForce (in frames per second^-2)
-    const float accFactor = 1200;
-    bool isDragging = false;
+    //const float accFactor = 1200;
+    
+	bool isDragging = false;
     int numOfFramesToStopAfterDrag = 60;
-
 	int connectTime = 0;
 	int deltaTime = 0;
 
 	ofTexture *drawTex;
+
+	ofFbo sequenceFbo;
 
 	void connectToMobile();
 	void connectToMobileIfTimeoutInUpdate();	
