@@ -18,6 +18,7 @@ void ofApp::setup() {
 	sequenceFbo.setAnchorPercent(0.5, 0.5);
 
 	guiSetup();
+	drawGui = guiStartup;
 	
 	//File format for the example frames is
 	//frame01.png 
@@ -52,17 +53,6 @@ void ofApp::setup() {
 	ofSetFrameRate(APP_FPS);
 	speed = minSpeed;
 
-	//int accSize = size(acc);
-	//for (int i = 0; i < accSize; i++) {
-	//	//acc[i] = (i / accSize - 0.5) * accFactor;
-	//	acc[i] = ofMap(i, 0, accSize-1, -1, 1) * accFactor;
-	//	if (!forwardUpward)
-	//	{
-	//		acc[i] *= -1;
-	//	} 
-	//	if(drawGui) ofLogNotice(ofToString(acc[i]));
-	//}
-
 	if (isToggleFullScreen) {
 		ofToggleFullscreen();
 	}
@@ -81,15 +71,15 @@ void ofApp::update() {
 		}
 
 		ctrSpeed = mobileController->receive();
-		if (drawGui) ofLogNotice(ctrSpeed == ""? "1" : "ctrSpeed::"+ctrSpeed);
+		if (drawGui) ofLogNotice(ctrSpeed == ""? "empty" : "ctrSpeed::"+ctrSpeed);
 		if (ctrSpeed.length() <= 0 ) {		
 			if ((isDragging && speed == 0))
 			{
-				if (couDefault <= numOfFramesToStopAfterDrag) {
-					couDefault++;
+				if (dragTimeout <= dragTimeoutSeconds) {
+					dragTimeout += (float)1/ofGetFrameRate();
 					//if (drawGui) ofLogNotice("dragging suspended...");
 				}
-				if (couDefault > numOfFramesToStopAfterDrag) {
+				if (dragTimeout > dragTimeoutSeconds) {
 					isDragging = false;
 					//if (drawGui) ofLogNotice("dragging overtimed...");
 				}
@@ -99,7 +89,6 @@ void ofApp::update() {
 		if (ctrSpeed.length() > 0) {
 						
 			vector<string> splitedCtrSpeed = ofSplitString(ctrSpeed, " ");
-			//if (drawGui) ofLogNotice("raw:" + ctrSpeed);
 
 			if (splitedCtrSpeed[0] == "d") {
 				dSmooth++;
@@ -107,7 +96,7 @@ void ofApp::update() {
 				if (dSmooth > dragFrameThreshold) {					
 					//this following part for determing drag movement
 					speed = 0;
-					couDefault = 0;
+					dragTimeout = 0;
 					isDragging = true;
 					float ctrlSpeed = forwardUpward ? ofToFloat(splitedCtrSpeed[1]) : -ofToFloat(splitedCtrSpeed[1]);
 					move = ctrlSpeed * dragSpeedMultiplier;
@@ -177,24 +166,19 @@ void ofApp::update() {
 		}
 
 		//to loop the png seq from end to beginning
-		if (percent > 1.0) {
+		if (percent >= 1.0) {
 			percent -= 1;
 			seqA = !seqA;
 		}
 		else if (percent < 0.0) {
-			percent =+ 1;
+			percent += 1;
 			seqA = !seqA;
 		}
-
-
-
 		//ofLogNotice("speed: " + ofToString(speed));
 	}
 	else {
 		//get the sequence frame that maps to the mouseX position
 		percent = ofMap(mouseY, 0, ofGetHeight(), 0, 1.0, true);
-
-
 	}
 	std::stringstream strm;
 	strm << "fps: " << ofGetFrameRate();
@@ -296,7 +280,10 @@ void ofApp::guiSetup() {
 	speedParameters.add(dragSpeedMultiplier.set("Drag Speed x", DragSpeedMultiplier, 0, 10));
 	speedParameters.add(slideMultiplier.set("Slide Speed x", SlideMultiplier, 0, 20));
 	speedParameters.add(dragFrameThreshold.set("Drag Threshold", 1, 0, 5));
-	gui.add(speedParameters);
+	speedParameters.add(dragTimeoutSeconds.set("Drag Timeout Seconds", 1, 0, 5));
+	speedParameters.add(isToggleFullScreen.set("Fullscreen Startup", false));
+	speedParameters.add(guiStartup.set("Show Settings Startup", drawGui));
 
+	gui.add(speedParameters);
 	gui.loadFromFile("settings.xml");
 }

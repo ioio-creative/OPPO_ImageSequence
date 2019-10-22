@@ -47,21 +47,24 @@ private:
 
 	void keyPressed(int key);
 
-	/* ofParameters */
 	bool drawGui = true;
+
+	/* ofParameters */
 	ofxPanel gui;
 	ofParameterGroup speedParameters;
 	ofParameter<float> minSpeed;
 	ofParameter<float> dragSpeedMultiplier;
 	ofParameter<float> slideMultiplier;
 	ofParameter<int> dragFrameThreshold;
+	ofParameter<float> dragTimeoutSeconds;
+	ofParameter<bool> isToggleFullScreen = false;
+	ofParameter<bool> guiStartup = true;
 
 	void guiSetup();
 
 	/* settings */
 	
 	const int frameRate = APP_FPS;
-	const bool isToggleFullScreen = false;
 	const bool isLogToConsole = false;
 	//const string adbPortForwardCmd = "/usr/local/Cellar/android-platform-tools/25.0.3/bin/adb forward tcp:12580 tcp:10086";
 	const string adbPortForwardCmd = "adb forward tcp:12580 tcp:10086";
@@ -86,21 +89,16 @@ private:
     int dSmooth;
 	float speed;
 	float percent;
-	bool seqA = true;
+	bool seqA = false;
     const float DragSpeedMultiplier = 8;
 	bool forwardUpward = false;
-    int couDefault = 0;
+    float dragTimeout = 0;
 	//Speed := frames per second
     const float MinSpeed = 25;
 	const float SlideMultiplier = 0.25;
 	//const float speedDefault = -0.1;
     
-	//float acc[11];
-	//accFactor = maxDragForce (in frames per second^-2)
-    //const float accFactor = 1200;
-    
 	bool isDragging = false;
-    int numOfFramesToStopAfterDrag = 30;
 	uint64_t connectTime = 0;
 
 	ofTexture *drawTex;
