@@ -23,6 +23,7 @@
 #define TEXTURE_WIDTH 768
 #define TEXTURE_HEIGHT 1536
 #define SEQUENCE_FPS 60
+#define APP_FPS 20
 
 #ifdef DEBUG
 #define DISPLAY_WIDTH ofGetWidth()
@@ -59,7 +60,7 @@ private:
 
 	/* settings */
 	
-	const int frameRate = SEQUENCE_FPS;
+	const int frameRate = APP_FPS;
 	const bool isToggleFullScreen = false;
 	const bool isLogToConsole = false;
 	//const string adbPortForwardCmd = "/usr/local/Cellar/android-platform-tools/25.0.3/bin/adb forward tcp:12580 tcp:10086";
@@ -68,13 +69,12 @@ private:
 	const int mobileServerPort = 12580;
 	const string imgExtenstion = "jpg";
 	const bool isThreadedLoadImage = false;
-	const int reconnectTimeMillis = 5000;
+	const uint64_t reconnectTimeMillis = 5000;
 	const bool isClearPixelsAfterLoadingTexture = true;
 
 	/* end of settings */
 
-	ofxTCPClient mobileController;
-	bool connected;
+	ofxTCPClient* mobileController;
 	bool connectedFlag = false;
 	string ctrSpeed = "peace";
 	//move := number of frames to proceed during dragging
@@ -86,12 +86,12 @@ private:
     int dSmooth;
 	float speed;
 	float percent;
-	bool seqA = false;
-    const float DragSpeedMultiplier = 15;
+	bool seqA = true;
+    const float DragSpeedMultiplier = 8;
 	bool forwardUpward = false;
     int couDefault = 0;
 	//Speed := frames per second
-    const float MinSpeed = 50;
+    const float MinSpeed = 25;
 	const float SlideMultiplier = 0.25;
 	//const float speedDefault = -0.1;
     
@@ -100,9 +100,8 @@ private:
     //const float accFactor = 1200;
     
 	bool isDragging = false;
-    int numOfFramesToStopAfterDrag = 60;
-	int connectTime = 0;
-	int deltaTime = 0;
+    int numOfFramesToStopAfterDrag = 30;
+	uint64_t connectTime = 0;
 
 	ofTexture *drawTex;
 

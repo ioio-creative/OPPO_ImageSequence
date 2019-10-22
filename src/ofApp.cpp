@@ -27,6 +27,7 @@ void ofApp::setup() {
 	//sequence.loadSequence("frame", "png", 1, 11, 2);
 	//sequence.preloadAllFrames();	//this way there is no stutter when loading frames
 
+	mobileController = new ofxTCPClient();
 	connectToMobile();
 
 	//ofSetVerticalSync(true);
@@ -48,7 +49,7 @@ void ofApp::setup() {
 	sequenceB.loadSequence("frameP/poriffshop_video_smoke_", imgExtenstion, 1500, 2999, 5);
 #endif
 
-	ofSetFrameRate(frameRate);
+	ofSetFrameRate(APP_FPS);
 	speed = minSpeed;
 
 	//int accSize = size(acc);
@@ -72,37 +73,33 @@ void ofApp::setup() {
 void ofApp::update() {
 	float _speed = 0;
 
-	if (mobileController.isConnected()) {
+	if (mobileController->isConnected()) {
 				
 		if (!connectedFlag) {
 			ofLogNotice("CONNECTED!");
 			connectedFlag = true;
 		}
 
-		ctrSpeed = mobileController.receive();
-		/*controllerThread.lock();
-		ctrSpeed = controllerThread.ctrSpeed;
-		controllerThread.unlock();*/
-		if (ctrSpeed == "") {
-			//ofLogNotice("empty string");
+		ctrSpeed = mobileController->receive();
+		if (drawGui) ofLogNotice(ctrSpeed == ""? "1" : "ctrSpeed::"+ctrSpeed);
+		if (ctrSpeed.length() <= 0 ) {		
 			if ((isDragging && speed == 0))
 			{
 				if (couDefault <= numOfFramesToStopAfterDrag) {
 					couDefault++;
+					//if (drawGui) ofLogNotice("dragging suspended...");
 				}
 				if (couDefault > numOfFramesToStopAfterDrag) {
-					speed = minSpeed;
 					isDragging = false;
+					//if (drawGui) ofLogNotice("dragging overtimed...");
 				}
 			}
-
-
 		}
 
-		if (ctrSpeed != "") {
+		if (ctrSpeed.length() > 0) {
 						
 			vector<string> splitedCtrSpeed = ofSplitString(ctrSpeed, " ");
-			if (drawGui) ofLogNotice("raw:" + ctrSpeed);
+			//if (drawGui) ofLogNotice("raw:" + ctrSpeed);
 
 			if (splitedCtrSpeed[0] == "d") {
 				dSmooth++;
@@ -145,6 +142,7 @@ void ofApp::update() {
 	}
 	else {
 		ofLogError("NO CONNECTION!");
+		connectedFlag = false;
 #if IS_RECONNECT_TO_MOBILE
 		if (!drawGui)
 		{
@@ -169,19 +167,22 @@ void ofApp::update() {
 			}
 		}
 
-		float deltaFrame = speed / ofGetFrameRate();
-
-		ofxImageSequence sequenceToUse = seqA ? sequenceA : sequenceB;
-		percent += deltaFrame / sequenceToUse.getTotalFrames();
-
+		float fps = ofGetFrameRate();
+		
+		if (fps > 0)
+		{
+			float deltaFrame = speed / fps;
+			ofxImageSequence sequenceToUse = seqA ? sequenceA : sequenceB;
+			percent += deltaFrame / sequenceToUse.getTotalFrames();
+		}
 
 		//to loop the png seq from end to beginning
 		if (percent > 1.0) {
-			percent = 0;
+			percent -= 1;
 			seqA = !seqA;
 		}
 		else if (percent < 0.0) {
-			percent = 1;
+			percent =+ 1;
 			seqA = !seqA;
 		}
 
@@ -195,7 +196,6 @@ void ofApp::update() {
 
 
 	}
-
 	std::stringstream strm;
 	strm << "fps: " << ofGetFrameRate();
 	ofSetWindowTitle(strm.str());
@@ -236,6 +236,10 @@ void ofApp::draw() {
 }
 
 void ofApp::exit() {
+	if (mobileController->isConnected())
+	{
+		mobileController->close();
+	}
 }
 
 //--------------------------------------------------------------
@@ -261,21 +265,26 @@ void ofApp::keyPressed(int key) {
 			break;
 		case 'f':
 			ofToggleFullscreen();
+			break;
 		case 'd':
 			drawGui = !drawGui;
+			break;
 	}
 }
 
 
 void ofApp::connectToMobile() {
-	system(adbPortForwardCmd.c_str());
-	connected = mobileController.setup(mobileServerIp, mobileServerPort, false);
+	system(adbPortForwardCmd.c_str());	
+	bool connected = mobileController->setup(mobileServerIp, mobileServerPort, false);
 }
 
 void ofApp::connectToMobileIfTimeoutInUpdate() {
-	deltaTime = ofGetElapsedTimeMillis() - connectTime;
+	uint64_t deltaTime = ofGetElapsedTimeMillis() - connectTime;
 	if (deltaTime > reconnectTimeMillis) {
-		connectToMobile();
+		if (!mobileController->isConnected()) {
+			mobileController = new ofxTCPClient();
+			connectToMobile();
+		}
 		connectTime = ofGetElapsedTimeMillis();
 	}	
 }
@@ -286,6 +295,8 @@ void ofApp::guiSetup() {
 	speedParameters.add(minSpeed.set("Min. Speed", MinSpeed, -60, 60));
 	speedParameters.add(dragSpeedMultiplier.set("Drag Speed x", DragSpeedMultiplier, 0, 10));
 	speedParameters.add(slideMultiplier.set("Slide Speed x", SlideMultiplier, 0, 20));
-	speedParameters.add(dragFrameThreshold.set("Drag Threshold", 3, 0, 5));
+	speedParameters.add(dragFrameThreshold.set("Drag Threshold", 1, 0, 5));
 	gui.add(speedParameters);
+
+	gui.loadFromFile("settings.xml");
 }
