@@ -25,6 +25,10 @@
 #define SEQUENCE_FPS 60
 #define APP_FPS 20
 
+#define FOLDER_A "frameU"
+#define FOLDER_B "frameV"
+#define IMAGE_FMT "jpg"
+
 #ifdef DEBUG
 #define DISPLAY_WIDTH ofGetWidth()
 #define DISPLAY_HEIGHT ofGetHeight()
@@ -70,7 +74,7 @@ private:
 	const string adbPortForwardCmd = "adb forward tcp:12580 tcp:10086";
 	const string mobileServerIp = "127.0.0.1";
 	const int mobileServerPort = 12580;
-	const string imgExtenstion = "jpg";
+	const string imgExtenstion = IMAGE_FMT;
 	const bool isThreadedLoadImage = false;
 	const uint64_t reconnectTimeMillis = 5000;
 	const bool isClearPixelsAfterLoadingTexture = true;

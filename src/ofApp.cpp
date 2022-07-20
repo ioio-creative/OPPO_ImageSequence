@@ -40,11 +40,11 @@ void ofApp::setup() {
 #if defined(TARGET_WIN32)
 	sequenceA.enableThreadedLoad(isThreadedLoadImage);
 	sequenceA.setExtension(imgExtenstion);
-	sequenceA.loadSequence("frameU");
+	sequenceA.loadSequence(FOLDER_A);
 
 	sequenceB.enableThreadedLoad(isThreadedLoadImage);
 	sequenceB.setExtension(imgExtenstion);
-	sequenceB.loadSequence("frameV");
+	sequenceB.loadSequence(FOLDER_B);
 #elif defined (TARGET_OSX)
 	sequenceA.loadSequence("frameO/poriffshop_video_smoke_", imgExtenstion, 0, 1499, 5);
 	sequenceB.loadSequence("frameP/poriffshop_video_smoke_", imgExtenstion, 1500, 2999, 5);
